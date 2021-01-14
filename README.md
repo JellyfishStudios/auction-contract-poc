@@ -1,3 +1,3 @@
 # Tako
 
-Soon to be, the worlds greatist Phaser.js level editor.
+Soon to be, the worlds greatest Phaser.js level editor.
