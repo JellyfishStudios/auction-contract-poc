@@ -1,24 +1,19 @@
 import React, {Component} from 'react';
 
-import DrawingCanvas from './canvas'
-import AppToolbar from './toolbar'
-
-import Paper from '@material-ui/core/Paper';
 import Grid from '@material-ui/core/Grid';
 import Container from '@material-ui/core/Container';
-import Accordion from '@material-ui/core/Accordion';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 
 import { MuiThemeProvider, withStyles } from "@material-ui/core/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
 import { CssBaseline } from '@material-ui/core';
 
+import AppToolbar from './toolbar'
+
 const theme = createMuiTheme({
     palette: {
-        type: 'dark'
+        type: 'light'
     }
 })
 
@@ -40,39 +35,27 @@ class App extends Component {
                     <Grid item xs={12}>     
                         <AppToolbar />
                     </Grid>
-                    <Grid item xs={3}>  
-                        <Paper className={classes.paper} >
-                            <Typography variant="h6" className={classes.title}>
-                                Inspector
+                    <Grid item xs={12}>   
+                        <Grid item xs={12}>  
+                            <Typography variant="h5" >
+                                Connecting animal shelters all over the world, with those that care.  
                             </Typography>
-                            <br/>
-                            <Accordion >
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>Properties</AccordionSummary>
-                                <AccordionDetails>
-                                    ...
-                                </AccordionDetails>
-                            </Accordion>
-                            <Accordion >
-                                <AccordionSummary expandIcon={<ExpandMoreIcon />}>Physics</AccordionSummary>
-                                <AccordionDetails>
-                                    ...
-                                </AccordionDetails>
-                            </Accordion>
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={9}>     
-                        <Paper className={classes.paper} >
-                            <DrawingCanvas />
-                        </Paper>
-                    </Grid>
-                    <Grid item xs={12}>         
-                        <Paper className={classes.paper} >
-                            Assets
-                        </Paper>
+                        </Grid>
+                        <Grid item xs={12}> 
+                            <Button>Create</Button>
+                        </Grid>
+                        <Grid item xs={12}> 
+                            <Typography variant="h6" >
+                                How does Tako work?  
+                            </Typography>
+                            <Typography>
+                                Animal shelters are able to register for verification, and once verified, are able to mint a new collection of NFT's, each of which represents an animal in their care. Everytime they take in a new animal, they're able to mint a new NFT representing the animal, including a profile picture, and stats such as breed, age, name, etc. These NFT's can then be put up for adoption, where indivduals who wish to donate can do so by bidding on the NFT, which will become theres once the adoption process completes. Those that don't wish to adopt can still help these animals, by 'liking' them, upon doing so will initiate a small donation to the animal/shelter in question. 
+                            </Typography>
+                        </Grid>
                     </Grid>
                     <Grid item xs={12}>         
                         <Container maxWidth="sm">
-                            Copyright 2021 @ Tako.app
+                            Copyright 2021 @ Tako
                         </Container>
                     </Grid>
                 </Grid>   

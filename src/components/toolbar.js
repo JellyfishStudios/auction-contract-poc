@@ -27,12 +27,12 @@ class AppToolbar extends Component {
             <AppBar position="static">
                 <Toolbar>
                     <Grid container spacing={1}>
-                        <Grid item xs={12}>   
-                            <Typography variant="h6" >
+                        <Grid item xs={4}>   
+                            <Typography variant="h4" >
                                 Tako
                             </Typography>
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={8}>
                             <ToggleButtonGroup>
                                 <ToggleButton >
                                     <TouchAppIcon />
