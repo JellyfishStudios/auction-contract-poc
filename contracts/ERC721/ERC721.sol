@@ -12,7 +12,7 @@ import './IERC165.sol';
 
 import '../Utils/Strings.sol';
 
-abstract contract ERC721 is IERC165, IERC721, IERC721Metadata, IERC721Enumerable, IERC2981 {
+abstract contract ERC721 is IERC165, IERC721, IERC721Metadata, IERC721Enumerable {
     // String extensions for uint256
     using Strings for uint256;
 
