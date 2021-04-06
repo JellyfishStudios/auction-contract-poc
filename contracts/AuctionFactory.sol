@@ -3,9 +3,9 @@
 pragma solidity ^0.8.2;
 
 import './Auction.sol';
-import './ProxyFactory.sol';
+import './Utils/ProxyFactory.sol';
 
-contract AuctionFactory is ProxyFactory{
+contract AuctionFactory is ProxyFactory {
     uint minimumBid;
     uint feePercentage;
     uint timeLimit;
@@ -39,7 +39,7 @@ contract AuctionFactory is ProxyFactory{
 
         deployedAuctions.push(auction);
 
-        AuctionCreated(address(auction));
+        emit AuctionCreated(address(auction));
     }
 
     function auctionsCreated() public view returns(uint) {
