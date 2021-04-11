@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.2;
 
-import './IERC165.sol';
+import '../IERC165.sol';
 
 interface IERC721 is IERC165 {
     /// @dev This emits when ownership of any NFT changes by any mechanism.
