@@ -7,35 +7,32 @@ import './IERC721Metadata.sol';
 import './IERC721Enumerable.sol';
 import './IERC721TokenReceiver.sol';
 
-import './IERC2981.sol';
-import './IERC165.sol';
+import '../IERC165.sol';
 
-import '../Utils/Strings.sol';
-
-abstract contract ERC721 is IERC165, IERC721, IERC721Metadata, IERC721Enumerable {
-    // String extensions for uint256
-    using Strings for uint256;
-
+abstract contract ERC721 is IERC165, IERC721Metadata, IERC721Enumerable {
     // Token name
     string private _name;
 
     // Token symbol
     string private _symbol;
 
-    // Token supply
-    uint256 private _tokenSupply;
+    // All tokens; handle this when minting/burning
+    uint256[] private _tokens;
+
+    // All tokens for owner; handle this when minting/burning
+    mapping (address => uint256[]) private _tokensForOwner;
+
+    // Owner address to token count
+    mapping (address => uint256) private _balances;
+    
+    // Owner to operator mapping
+    mapping (address => mapping(address => bool)) _operatorApprovals;
 
     // Token Id to owner address mapping
     mapping (uint256 => address) private _owners;
 
-    // Owner address to token count
-    mapping (address => uint256) private _balances;
-
     // Token Id to approved address 
     mapping (uint256 => address) private _tokenApprovals;
-
-    // Owner to operator mapping
-    mapping (address => mapping(address => bool)) _operatorApprovals;
 
     // Token Id to Token URI mapping
     mapping (uint256 => string) internal _tokenURIs;
@@ -82,29 +79,27 @@ abstract contract ERC721 is IERC165, IERC721, IERC721Metadata, IERC721Enumerable
     *  @dev See {IERC721Enumerable-totalSupply}.
     */ 
     function totalSupply() public view virtual override returns (uint256) {
-        return _tokenSupply;
+        return _tokens.length;
     }
 
     /*
     *  @dev See {IERC721Enumerable-tokenByIndex}.
     */ 
     function tokenByIndex(uint256 index) public view virtual override returns (uint256) {
-        require(index > _tokenSupply, "ERC721Enumerable: Index greater than token supply");
+        require(index < _tokens.length, "ERC721Enumerable: Index greater than token supply");
 
-        // TODO return token at index
-        return _tokenSupply;
+        return _tokens[index];
     }
 
     /*
-    *  @dev See {IERC721Enumerable-tokenByIndex}.
+    *  @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
     */ 
     function tokenOfOwnerByIndex(address owner, uint256 index) public view virtual override returns (uint256) {
-        require(index > _tokenSupply, "ERC721Enumerable: Index greater than token supply");
+        require(owner != address(0), "ERC721Enumerable: Token query for a nonexistent owner");
+        require(index < _tokensForOwner[owner].length, "ERC721Enumerable: Index greater than owner's token supply");
 
-        // TODO return token at index
-        return _tokenSupply;
+        return _tokensForOwner[owner][index];
     }
-
 
     /*
     *  @dev See {IERC721-ownerOf}.
@@ -170,7 +165,9 @@ abstract contract ERC721 is IERC165, IERC721, IERC721Metadata, IERC721Enumerable
     */ 
     function transferFrom(address from, address to, uint256 tokenId) public virtual override payable {
         require(_isApproved(msg.sender, tokenId), "ERC721: Caller is not approved to manage this token");
-        
+        require(ownerOf(tokenId) == from, "ERC721: From address does not own this token");
+        require(to != address(0), "ERC721: Transfer to a zero address");
+
         _transfer(from, to, tokenId);
     }
 
@@ -185,9 +182,7 @@ abstract contract ERC721 is IERC165, IERC721, IERC721Metadata, IERC721Enumerable
     *  @dev See {IERC721-safeTransferFrom}.
     */ 
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual override payable {
-        require(_isApproved(msg.sender, tokenId), "ERC721: Caller is not approved to manage this token");
-        
-        _transfer(from, to, tokenId);
+        transferFrom(from, to, tokenId);
 
         // If receiver is a contract, call the contract to validate the transfer
         //
@@ -204,45 +199,60 @@ abstract contract ERC721 is IERC165, IERC721, IERC721Metadata, IERC721Enumerable
     *  @dev Initiates a transfer.
     */ 
     function _transfer(address from, address to, uint256 tokenId) internal virtual {
-        require(ownerOf(tokenId) == from, "ERC721: From address does not own this token");
-        require(to != address(0), "ERC721: Transfer to a zero address");
-
-        // Remove existing approver from the previous owner
+        require (from != address(0) || to != address(0), "ERC721: Attempting transfer from 0 address to 0 address");
+        
+        // Mint or transer
         //
-        _tokenApprovals[tokenId] = address(0);
+        if (to != address(0)) {
+            // Update 'to' address's total supply
+            _tokensForOwner[to].push(tokenId);
 
-        // Update balances
-        //
-        _balances[from] -= 1;
-        _balances[to] += 1;
+            // Update balance
+            _balances[to] += 1;
+        }
+        else{ // Burn
 
-        // Finally, tyransfer ownership to the new address
+            // Update total token supply (-)
+            _removeTokenFromCollection(tokenId, _tokens);
+        }
+        
+        // Burn or transfer
         //
+        if (from != address(0)) {
+            // Remove an existing approver
+            _tokenApprovals[tokenId] = address(0);
+
+            // Update 'from' address's supply (-)
+            //
+            _removeTokenFromCollection(tokenId, _tokensForOwner[from]);
+
+            // Update balance (-)
+            _balances[from] -= 1;
+        }
+        else { // Mint
+
+            // Updating total total supply for contract
+            _tokens.push(tokenId);
+        }
+
+         // Transfer ownership to the new address (mint, burn or transfer)
+         // 
         _owners[tokenId] = to;
 
         emit Transfer(from, to, tokenId);
     }
 
-    /*
-    *  @dev Mint a new token
-    */ 
-    function _mint(address to, uint256 tokenId) internal virtual {
-        require(to != address(0), "ERC721: Transfer to a zero address");
-        require(_owners[tokenId] == address(0), "ERC721: Token already exists");
+    function _removeTokenFromCollection(uint256 value, uint256[] storage values) internal {
+        uint256 length = values.length;
 
-        // Update balance
-        //
-        _balances[to] += 1;
+        for (uint256 i=0; i<length; i++) {
+            if (values[i] == value) {
+                values[i] = values[length-1];
+                delete values[i];
 
-        // Keep track of total supply
-        //
-        _tokenSupply += 1;
-
-        // Transfer ownership to the new address
-        //
-        _owners[tokenId] = to;
-
-        emit Transfer(address(0), to, tokenId);
+                break;
+            }
+        }
     }
 
     /*

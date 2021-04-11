@@ -3,7 +3,7 @@
 pragma solidity ^0.8.2;
 
 import './Auction.sol';
-import './Utils/ProxyFactory.sol';
+import './utilities/ProxyFactory.sol';
 
 contract AuctionFactory is ProxyFactory {
     uint minimumBid;
